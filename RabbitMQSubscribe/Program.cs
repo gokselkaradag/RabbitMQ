@@ -39,11 +39,13 @@ namespace RabbitMQSubscribe
 
             //channel.BasicConsume("hello-queue",false,consumer); //Declare işlemleri
 
-            var queueName = "direct-queue-Critical"; //Direct İşlemleri
-            channel.BasicConsume(queueName, false, consumer); //Direct işlemleri
+            /*var queueName = "direct-queue-Critical";*/ //Direct İşlemleri
+            /*channel.BasicConsume(queueName, false, consumer);*/ //Direct işlemleri
 
-
-            /*channel.BasicConsume(randomQueueName, false, consumer);*/ //Random işlemleri
+            var queueName = channel.QueueDeclare().QueueName;
+            var routeKey = "Info.#";
+            channel.QueueBind(queueName, "logs-topic", routeKey);
+            channel.BasicConsume(queueName, false, consumer); //Random işlemleri
 
             Console.WriteLine("Loglar Dinleniyor...");
 
