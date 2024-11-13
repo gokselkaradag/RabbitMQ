@@ -1,6 +1,7 @@
 ﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -16,7 +17,9 @@ namespace RabbitMQSubscribe
 
             using var connection = factory.CreateConnection();
             var channel = connection.CreateModel();
+            channel.ExchangeDeclare("header-exchange", durable: true, type: ExchangeType.Headers); //Headers İşlemleri
 
+            #region queue and channel
             //channel.QueueDeclare("hello-queue", true, false, false);
 
             //Random bir şekilde kuyruk oluşturduk. Bu işlemi RabbitMQ Client paketi sayesinde yapıyoruz.
@@ -33,6 +36,8 @@ namespace RabbitMQSubscribe
 
 
             //channel.QueueBind(randomQueueName, "logs-fanout", "", null);
+            #endregion queue and channel
+
 
             channel.BasicQos(0, 1, false);
             var consumer = new EventingBasicConsumer(channel);
@@ -43,8 +48,19 @@ namespace RabbitMQSubscribe
             /*channel.BasicConsume(queueName, false, consumer);*/ //Direct işlemleri
 
             var queueName = channel.QueueDeclare().QueueName;
-            var routeKey = "Info.#";
-            channel.QueueBind(queueName, "logs-topic", routeKey);
+            //var routeKey = "Info.#";
+
+            Dictionary<string, object> headers = new Dictionary<string, object>();
+
+            headers.Add("format", "pdf");
+            headers.Add("shae", "a4");
+            headers.Add("x-match", "all");
+
+
+
+
+            channel.QueueBind(queueName, "header-exchange", string.Empty, headers);
+
             channel.BasicConsume(queueName, false, consumer); //Random işlemleri
 
             Console.WriteLine("Loglar Dinleniyor...");
