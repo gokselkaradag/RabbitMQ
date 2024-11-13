@@ -1,8 +1,10 @@
 ﻿using RabbitMQ.Client;
+using Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Channels;
 
 namespace RabbitMQPublisher
@@ -27,6 +29,7 @@ namespace RabbitMQPublisher
             var channel = connection.CreateModel();
 
             //channel.QueueDeclare("hello-queue", true, false, false); //Declare işlemleri
+
             /*channel.ExchangeDeclare("logs-fanout", durable: true, type: ExchangeType.Fanout);*/ //Fanout İşlemleri
 
             //channel.ExchangeDeclare("logs-direct", durable: true, type: ExchangeType.Direct); //Direct İşlemleri
@@ -42,8 +45,13 @@ namespace RabbitMQPublisher
 
             var properties = channel.CreateBasicProperties();
             properties.Headers = headers;
+            properties.Persistent = true; //True ise mesajlar kalıcı hale gelecektir.
 
-            channel.BasicPublish("header-exchange", string.Empty, properties, Encoding.UTF8.GetBytes("Header Mesajım"));
+            var product = new Product {Id = 1, Name = "Kalem", Price = 100, Stock = 10 }; //Product atamaları
+
+            var productJsonString = JsonSerializer.Serialize(product); //Product Serialize İşlemleri
+
+            channel.BasicPublish("header-exchange", string.Empty, properties, Encoding.UTF8.GetBytes(productJsonString));
             Console.WriteLine("Mesaj Gönderildi");
 
             #region LogName
